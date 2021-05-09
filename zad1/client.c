@@ -6,7 +6,7 @@ int main()
     int socket;
     struct sockaddr_un name = {0};
     char buffer[BUFSZ] = {0};
-    socket = sk(AF_UNIX, SOCK_STREAM, 0);
+    socket = socket(AF_UNIX, SOCK_STREAM, 0);
     
     if (socket < 0)
     {
