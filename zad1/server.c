@@ -1,69 +1,62 @@
 #include "my_server.h"
 
-int test_buffer(const char* buffer) {
-    int error = 0;
-    if (strcmp (buffer , "ls") == 0) {
-        pid_t pd = fork();
-        if (pd == 0) {
-            execlp("ls", "ls", NULL);
-            fflush(stdout);
-        }
-    } else if (buffer[0] == 'c' && buffer[1] == 'd') {
-
-        if (buffer[2] == ' ') {
-            error = chdir(buffer + 3);
-        } else if (buffer[2] == '\0') {
-            error = chdir("/");
-        } else {
-            error = -1;
-        }
-
-        if (error == -1) {
-            printf("Can't do this! ");
-        }
-
-    } else {
-        printf ("There is no : %s ", buffer);
-    }
-    return 0;
-}
-
-int main() {
+int main()
+{
     int sock;
-    sock = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (sock < 0) {
+    struct sockaddr_un name = {0};
+    sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    
+    if (sock < 0)
+    {
         perror("Error: unable to create socket!");
         return 1;
     }
-    struct in_addr in_ad = { inet_addr (MY_IP )};
-    struct sockaddr_in name = { AF_INET, PORT, in_ad };
+    
+    name.sun_family = AF_UNIX;
+    strncpy(name.sun_path, PATH, sizeof(PATH));
 
-    struct sockaddr* name_ = (struct sockaddr*)&name;
-    socklen_t sock_len = sizeof (struct sockaddr_in);
-
-    if (bind(sock, name_,  sock_len) < 0) {
+    if (bind(sock, (struct sockaddr*)&name, sizeof(name)) < 0)
+    {
         perror("Error: unable to bind socket!");
         close(sock);
         return 1;
     }
-
-    while(1) {
-
-        char buffer[BUFSZ] = {0};
-
-        if (recvfrom(sock , buffer , BUFSZ , 0 , name_ , &sock_len) == -1) {
-            perror("Error : unable to read client! ");
-            break;
-        }
-
-        if (strcmp(buffer, "CLOSE_SERVER") == 0) {
-            break;
-        }
-       if (test_buffer(buffer) == -1) {
-           break;
-       }
+    
+    if (listen(sock, 20))   
+    {
+        perror("Error: unable to listen socket!");
+        close(sock);
+        return 1;
     }
-    close(sock);
-    return 0;
+    
+    while (1)
+    {
+        int client_sock;
+        char buffer[BUFSZ] = {0};
+        client_sock = accept(sock, NULL, NULL);
+        
+        if (client_sock < 0)
+        {
+            perror("Error: unable to accept socket!");
+            exit(1);
+        }
+        
+        if (read(client_sock, buffer, BUFSZ) < 0 || read(client_sock, buffer, BUFSZ) > BUFSZ)
+        {
+            perror("Error: unable to read socket!");
+            exit(1);
+        }
+        
+        close(client_sock);
+        
+        if (strncmp(buffer, "print", sizeof("print")-1) == 0) {
+            printf("%s", buffer+sizeof("print"));
+        }
+        
+        if (strncmp(buffer, "exit", sizeof("exit")-1) == 0) {
+            break;
+        }
+    }
+    unlink(PATH);
 }
+
