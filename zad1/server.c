@@ -29,10 +29,10 @@ int test_buffer(const char* buffer) {
 }
 
 int main() {
-    int socket;
-    socket = socket(AF_INET, SOCK_DGRAM, 0);
+    int sock;
+    sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-    if (socket < 0) {
+    if (sock < 0) {
         perror("Error: unable to create socket!");
         return 1;
     }
@@ -42,9 +42,9 @@ int main() {
     struct sockaddr* name_ = (struct sockaddr*)&name;
     socklen_t sock_len = sizeof (struct sockaddr_in);
 
-    if (bind(socket, name_,  sock_len) < 0) {
+    if (bind(sock, name_,  sock_len) < 0) {
         perror("Error: unable to bind socket!");
-        close(socket);
+        close(sock);
         return 1;
     }
 
@@ -52,7 +52,7 @@ int main() {
 
         char buffer[BUFSZ] = {0};
 
-        if (recvfrom(socket , buffer , BUFSZ , 0 , name_ , &sock_len) == -1) {
+        if (recvfrom(sock , buffer , BUFSZ , 0 , name_ , &sock_len) == -1) {
             perror("Error : unable to read client! ");
             break;
         }
@@ -64,6 +64,6 @@ int main() {
            break;
        }
     }
-    close(socket);
+    close(sock);
     return 0;
 }
