@@ -3,12 +3,12 @@
 int main()
 {
 
-    int socket;
+    int sock;
     struct sockaddr_un name = {0};
     char buffer[BUFSZ] = {0};
-    socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    sock = socket(AF_UNIX, SOCK_STREAM, 0);
     
-    if (socket < 0)
+    if (sock < 0)
     {
         perror("Error: unable to create socket!");
         exit(1);
@@ -18,15 +18,15 @@ int main()
     strncpy(name.sun_path, PATH, sizeof(PATH));
 
 //connect
-    if (connect(socket, (struct sockaddr*)&name, sizeof(name)) < 0)
+    if (connect(sock, (struct sockaddr*)&name, sizeof(name)) < 0)
     {
         perror("Error: unable to connect!");
-        close(socket);
+        close(sock);
         return 1;
     }
 
 //write
-    if (write(socket, buffer, BUFSZ) < 0 || write(socket, buffer, BUFSZ) > BUFSZ)
+    if (write(sock, buffer, BUFSZ) < 0 || write(sock, buffer, BUFSZ) > BUFSZ)
     {
         perror("Error: unable to write!");
         exit(1);
